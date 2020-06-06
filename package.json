@@ -20,6 +20,7 @@
     "dev-rome": "node ./scripts/dev-rome",
     "test": "node ./scripts/dev-rome test",
     "lint": "node ./scripts/dev-rome lint",
+    "parse": "node ./scripts/dev-rome parse",
     "fix": "node ./scripts/dev-rome --fix"
   },
   "rome": {

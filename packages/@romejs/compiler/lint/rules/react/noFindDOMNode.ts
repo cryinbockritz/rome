@@ -6,18 +6,37 @@
 */
 
 import {descriptions} from "@romejs/diagnostics";
-import {AnyNode} from "@romejs/ast";
+import {AnyNode, JSVariableDeclarator} from "@romejs/ast";
 import {Path} from "@romejs/compiler";
 import {doesNodeMatchPattern} from "@romejs/js-ast-utils";
 
-function hasFindMemberProperty(node: AnyNode) {
+function hasFindDOMNodeMemberProperty(node: AnyNode) {
 	return (
 		node.type === "JSStaticMemberProperty" &&
 		doesNodeMatchPattern(node.value, "findDOMNode")
 	);
 }
 
-function hasFindCallExpression(node: AnyNode) {
+/* TODO:
+	- cleanup this code
+	- write test(s)
+	- find invalid assignments
+		```
+			let x = 5;
+			x = findDOMNode;
+		```
+	- remove test directory
+*/
+function hasFindDOMNodeDeclaration(node: AnyNode) {
+	return (
+		node.type === "JSVariableDeclarationStatement" &&
+		Boolean(node.declaration.declarations
+			.find((declaration: JSVariableDeclarator) => declaration?.init?.type === "JSReferenceIdentifier" &&
+				declaration?.init?.name === "findDOMNode"))
+	);
+}
+
+function hasFindDOMNodeCallExpression(node: AnyNode) {
 	return (
 		node.type === "JSCallExpression" &&
 		doesNodeMatchPattern(node.callee, "findDOMNode")
@@ -30,7 +49,7 @@ export default {
 	enter(path: Path): AnyNode {
 		const {node} = path;
 
-		if (hasFindMemberProperty(node) || hasFindCallExpression(node)) {
+		if (hasFindDOMNodeDeclaration(node) || hasFindDOMNodeMemberProperty(node) || hasFindDOMNodeCallExpression(node)) {
 			path.context.addNodeDiagnostic(
 				node,
 				descriptions.LINT.REACT_NO_FIND_DOM_NODE,
